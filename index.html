@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,10 +9,295 @@
     <meta property="og:description" content="Applicazione mobile wireframe in bianco e nero con formato iPhone 14 e navigazione tra due pagine tramite pulsanti Avanti e Indietro." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- Tailwind CSS Standalone CDN (Nessun compilatore esterno o Node.js richiesto per GitHub Pages) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Stili wireframe addizionali */
+      body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      .bg-grid-dots {
+        background-image: radial-gradient(#a1a1aa 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .bg-wireframe-grid {
+        background-image: linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+      /* Animazione di scorrimento leggera tra le pagine */
+      .page-transition {
+        transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
+      }
+      .page-hidden-left {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-30px);
+        display: none !important;
+      }
+      .page-hidden-right {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(30px);
+        display: none !important;
+      }
+      .page-active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0);
+        display: flex !important;
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+  <body class="min-h-screen bg-[#F4F4F4] text-black flex flex-col items-center justify-center p-3 sm:p-6 select-none relative overflow-x-hidden">
+    
+    <!-- Sfondo blueprint a griglia di puntini -->
+    <div class="fixed inset-0 pointer-events-none opacity-40 bg-grid-dots"></div>
+
+    <!-- Barra superiore Wireframe / Strumenti di test -->
+    <header class="z-10 mb-4 flex flex-wrap items-center justify-between gap-3 w-full max-w-[420px] px-2 text-xs border-b border-black pb-2">
+      <div class="flex items-center gap-2">
+        <span class="font-bold tracking-wider uppercase border border-black px-1.5 py-0.5 bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          WIREFRAME
+        </span>
+        <span class="text-zinc-600 font-sans text-[11px]">
+          iPhone 14 (390 × 844)
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          id="btn-toggle-grid"
+          type="button"
+          title="Mostra o nascondi la griglia wireframe"
+          class="flex items-center gap-1 border border-black px-2 py-0.5 cursor-pointer text-[11px] bg-black text-white hover:bg-zinc-800 transition-colors"
+        >
+          <span>Griglia</span>
+        </button>
+
+        <button
+          id="btn-reset"
+          type="button"
+          title="Ripristina alla Pagina 1"
+          class="flex items-center gap-1 border border-black bg-white hover:bg-zinc-100 px-2 py-0.5 cursor-pointer text-[11px] transition-colors"
+        >
+          <span>Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Indicatore dello stato corrente -->
+    <div class="z-10 mb-3 flex items-center justify-between w-full max-w-[420px] px-2 text-[11px] text-zinc-700">
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full border border-black bg-white inline-block"></span>
+        <span>Schermata attiva: <strong id="current-page-label" class="text-black font-semibold">Pagina 1</strong></span>
+      </div>
+      <span id="instruction-label" class="border-b border-dashed border-zinc-500">
+        Premi "avanti" per Pagina 2
+      </span>
+    </div>
+
+    <!-- Dispositivo iPhone 14 (Formato e Mockup Wireframe) -->
+    <div class="relative z-10 flex items-center justify-center">
+      <!-- Pulsanti fisici laterali dell'iPhone 14 (wireframe) -->
+      <!-- Sinistra: interruttore silenzioso -->
+      <div class="absolute -left-[5px] top-[115px] w-[5px] h-[26px] bg-white border border-black rounded-l-sm"></div>
+      <!-- Sinistra: Volume + -->
+      <div class="absolute -left-[5px] top-[155px] w-[5px] h-[50px] bg-white border border-black rounded-l-sm"></div>
+      <!-- Sinistra: Volume - -->
+      <div class="absolute -left-[5px] top-[215px] w-[5px] h-[50px] bg-white border border-black rounded-l-sm"></div>
+      <!-- Destra: Tasto accensione -->
+      <div class="absolute -right-[5px] top-[170px] w-[5px] h-[75px] bg-white border border-black rounded-r-sm"></div>
+
+      <!-- Scocca iPhone 14 -->
+      <div class="w-[390px] h-[844px] max-h-[85vh] aspect-[390/844] bg-white border-[3px] border-black rounded-[50px] p-[10px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col overflow-hidden">
+        
+        <!-- Display / Cornice interna dello schermo -->
+        <div class="w-full h-full bg-white border border-black rounded-[40px] flex flex-col relative overflow-hidden">
+          
+          <!-- Griglia wireframe opzionale sullo schermo -->
+          <div id="screen-grid" class="absolute inset-0 pointer-events-none opacity-20 z-0 bg-wireframe-grid"></div>
+
+          <!-- Notch iPhone 14 con altoparlante e fotocamera -->
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[160px] h-[30px] bg-white border-b-2 border-x-2 border-black rounded-b-[18px] z-30 flex items-center justify-center gap-3">
+            <!-- Fessura altoparlante -->
+            <div class="w-12 h-1 bg-black rounded-full"></div>
+            <!-- Fotocamera frontale -->
+            <div class="w-2.5 h-2.5 rounded-full border border-black flex items-center justify-center">
+              <div class="w-1 h-1 bg-black rounded-full"></div>
+            </div>
+          </div>
+
+          <!-- Barra di stato iOS (Stile Wireframe) -->
+          <div class="w-full h-[44px] pt-3 px-6 flex items-center justify-between text-[11px] font-sans font-medium text-black z-20 shrink-0">
+            <!-- Ora -->
+            <span class="font-semibold tracking-tight">09:41</span>
+
+            <!-- Icone di stato (Segnale, Wi-Fi, Batteria) -->
+            <div class="flex items-center gap-1.5">
+              <!-- Barre di segnale cellulare -->
+              <div class="flex items-end gap-0.5 h-2.5">
+                <div class="w-0.5 h-1 bg-black"></div>
+                <div class="w-0.5 h-1.5 bg-black"></div>
+                <div class="w-0.5 h-2 bg-black"></div>
+                <div class="w-0.5 h-2.5 bg-black"></div>
+              </div>
+              <!-- Wi-Fi wireframe -->
+              <div class="w-3 h-2.5 border-t-2 border-black rounded-t-full flex items-end justify-center">
+                <div class="w-1 h-1 bg-black rounded-full"></div>
+              </div>
+              <!-- Batteria wireframe -->
+              <div class="w-5 h-2.5 border border-black rounded-[2px] p-0.5 flex items-center relative">
+                <div class="h-full w-3 bg-black rounded-[1px]"></div>
+                <div class="absolute -right-[3px] top-1/2 -translate-y-1/2 w-[2px] h-1.5 bg-black rounded-r-xs"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Area Contenuto: Pagina 1 e Pagina 2 -->
+          <!-- Entrambe le pagine sono completamente vuote tranne il rispettivo bottone -->
+          <main class="relative flex-1 w-full overflow-hidden flex items-center justify-center">
+            
+            <!-- PAGINA 1: con dentro SOLO un bottone con scritto “avanti” -->
+            <div 
+              id="page-1" 
+              class="page-transition page-active absolute inset-0 items-center justify-center p-6 z-10"
+            >
+              <button
+                id="btn-avanti"
+                type="button"
+                class="group relative inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-white text-black text-base font-bold uppercase tracking-wider border-2 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                aria-label="Passa alla Pagina 2"
+              >
+                <span>avanti</span>
+                <svg class="w-4 h-4 stroke-[2.5] transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- PAGINA 2: con dentro SOLO un bottone con scritto “indietro” -->
+            <div 
+              id="page-2" 
+              class="page-transition page-hidden-right absolute inset-0 items-center justify-center p-6 z-10"
+            >
+              <button
+                id="btn-indietro"
+                type="button"
+                class="group relative inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-white text-black text-base font-bold uppercase tracking-wider border-2 border-black rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                aria-label="Torna alla Pagina 1"
+              >
+                <svg class="w-4 h-4 stroke-[2.5] transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>indietro</span>
+              </button>
+            </div>
+
+          </main>
+
+          <!-- Barra Home iOS (Stile Wireframe) -->
+          <div class="w-full h-8 flex items-center justify-center z-20 shrink-0">
+            <div class="w-32 h-1 bg-black rounded-full"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Note a piè di pagina -->
+    <footer class="z-10 mt-4 text-center text-xs text-zinc-600 flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+      <span>Formato: <strong>iPhone 14</strong></span>
+      <span class="hidden sm:inline">•</span>
+      <span>Stile: <strong>Wireframe B&W</strong></span>
+      <span class="hidden sm:inline">•</span>
+      <span class="text-zinc-500">Navigazione via click o tastiera (← / →)</span>
+    </footer>
+
+    <!-- JavaScript Vanilla Standalone: Gestione cambio pagina via ID (100% nativo) -->
+    <script>
+      (function() {
+        const page1 = document.getElementById('page-1');
+        const page2 = document.getElementById('page-2');
+        const btnAvanti = document.getElementById('btn-avanti');
+        const btnIndietro = document.getElementById('btn-indietro');
+        const currentPageLabel = document.getElementById('current-page-label');
+        const instructionLabel = document.getElementById('instruction-label');
+        const btnToggleGrid = document.getElementById('btn-toggle-grid');
+        const screenGrid = document.getElementById('screen-grid');
+        const btnReset = document.getElementById('btn-reset');
+
+        let currentPage = 1;
+        let isGridVisible = true;
+
+        function showPage2() {
+          currentPage = 2;
+          // Nascondi pagina 1
+          page1.classList.remove('page-active');
+          page1.classList.add('page-hidden-left');
+          
+          // Mostra pagina 2
+          page2.classList.remove('page-hidden-right');
+          page2.classList.remove('page-hidden-left');
+          page2.classList.add('page-active');
+
+          // Aggiorna etichette
+          if (currentPageLabel) currentPageLabel.textContent = 'Pagina 2';
+          if (instructionLabel) instructionLabel.textContent = 'Premi "indietro" per Pagina 1';
+        }
+
+        function showPage1() {
+          currentPage = 1;
+          // Nascondi pagina 2
+          page2.classList.remove('page-active');
+          page2.classList.add('page-hidden-right');
+
+          // Mostra pagina 1
+          page1.classList.remove('page-hidden-left');
+          page1.classList.remove('page-hidden-right');
+          page1.classList.add('page-active');
+
+          // Aggiorna etichette
+          if (currentPageLabel) currentPageLabel.textContent = 'Pagina 1';
+          if (instructionLabel) instructionLabel.textContent = 'Premi "avanti" per Pagina 2';
+        }
+
+        // Event Listeners collegati ai bottoni
+        btnAvanti.addEventListener('click', function() {
+          showPage2();
+        });
+
+        btnIndietro.addEventListener('click', function() {
+          showPage1();
+        });
+
+        // Toggle griglia
+        btnToggleGrid.addEventListener('click', function() {
+          isGridVisible = !isGridVisible;
+          if (isGridVisible) {
+            screenGrid.style.display = 'block';
+            btnToggleGrid.classList.remove('bg-white', 'text-black');
+            btnToggleGrid.classList.add('bg-black', 'text-white');
+          } else {
+            screenGrid.style.display = 'none';
+            btnToggleGrid.classList.remove('bg-black', 'text-white');
+            btnToggleGrid.classList.add('bg-white', 'text-black');
+          }
+        });
+
+        // Reset
+        btnReset.addEventListener('click', function() {
+          showPage1();
+        });
+
+        // Supporto scorciatoie tastiera
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'ArrowRight' || e.key === 'Enter') {
+            if (currentPage === 1) showPage2();
+          } else if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+            if (currentPage === 2) showPage1();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
-

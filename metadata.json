@@ -1,0 +1,6 @@
+{
+  "name": "Wireframe iPhone 14 - Navigazione",
+  "description": "Applicazione mobile wireframe in bianco e nero con formato iPhone 14 e navigazione tra due pagine tramite pulsanti Avanti e Indietro.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
